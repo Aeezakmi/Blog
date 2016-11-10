@@ -18,9 +18,15 @@
         </div>
 
         <div class="form-group">
-            <label class="col-sm-4 control-label">Password</label>
+            <label class="col-sm-4 control-label" for="user_password_first">Password</label>
             <div class="col-sm-4">
-                <input type="password" class="form-control" name="_password" placeholder="Password">
+                <input type="password" class="form-control" id="user_password_first" placeholder="Password" name="user[password][first]" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label" for="user_password_first">Confirm Password</label>
+            <div class="col-sm-4">
+                <input type="password" class="form-control" id="user_password_first" placeholder="Password" name="user[password][second]" required>
             </div>
         </div>
 

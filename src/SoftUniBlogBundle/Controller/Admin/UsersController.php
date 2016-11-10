@@ -50,7 +50,6 @@ class UsersController extends Controller
         $originalPassword = $user->getPassword();
 
         $form = $this->createForm(UserEditType::class, $user);
-var_dump($request);
 
 
         $form->handleRequest($request);
