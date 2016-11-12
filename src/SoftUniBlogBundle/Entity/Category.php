@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Category
  *
  * @ORM\Table(name="categories")
+ *
  * @ORM\Entity(repositoryClass="SoftUniBlogBundle\Repository\CategoryRepository")
  */
 class Category
