@@ -2,6 +2,7 @@
 
 namespace SoftUniBlogBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -63,5 +64,34 @@ class Category
     {
         return $this->name;
     }
-}
 
+    public function getArticles()
+    {
+        return $this->articles;
+    }
+
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity="SoftUniBlogBundle\Entity\Article", mappedBy="category")
+     */
+    private $articles;
+
+    /**
+     * @param ArrayCollection $articles
+     */
+    public function setArticles(ArrayCollection $articles)
+    {
+        $this->articles = $articles;
+    }
+
+    public function __construct()
+    {
+        $this->articles = new ArrayCollection();
+    }
+
+    function __toString()
+    {
+        return $this->getName();
+    }
+}
