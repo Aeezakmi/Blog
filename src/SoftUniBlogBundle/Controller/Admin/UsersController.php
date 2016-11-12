@@ -8,6 +8,7 @@ use SoftUniBlogBundle\Entity\User;
 use SoftUniBlogBundle\Form\UserEditType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 
 /**
@@ -43,7 +44,7 @@ class UsersController extends Controller
 
         $user = $this->getDoctrine()->getRepository(User::class)->find($id);
 
-        if ($user === null){
+        if ($user === null) {
             return $this->redirectToRoute("admin_users");
         }
 
@@ -54,26 +55,27 @@ class UsersController extends Controller
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()){
+        if ($form->isSubmitted() && $form->isValid()) {
 
             $rolesRequest = $user->getRoles();
             $rolesRepository = $this->getDoctrine()->getRepository(Role::class);
             $roles = [];
 
-            foreach ($rolesRequest as $roleName){
+            foreach ($rolesRequest as $roleName) {
                 $roles[] = $rolesRepository->findOneBy(['name' => $roleName]);
             }
 
+
             $user->setRoles($roles);
 
-            if (!empty($user->getPassword())){
+            if ($user->getPassword()) {
                 $password = $this->get('security.password_encoder')
                     ->encodePassword($user, $user->getPassword());
                 $user->setPassword($password);
-            }
-            else{
+            } else {
                 $user->setPassword($originalPassword);
             }
+
 
             $em = $this->getDoctrine()->getEntityManager();
             $em->persist($user);
@@ -83,7 +85,41 @@ class UsersController extends Controller
         }
 
         return $this->render('admin/user/edit.html.twig',
-            ['user'=> $user,
+            ['user' => $user,
                 'form' => $form->createView()]);
+    }
+
+    /**
+     * @Route("/delete/{id}", name="admin_user_delete")
+     * @param $id
+     * @param Request $request
+     * @return Response
+     *
+     */
+    public function deleteUser($id, Request $request)
+    {
+        $user = $this->getDoctrine()->getRepository(User::class)->find($id);
+
+        if ($user === null){
+            return $this->redirectToRoute("admin_users");
+        }
+
+        $form = $this->createForm(UserEditType::class, $user);
+
+$form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em = $this->getDoctrine()->getManager();
+
+            foreach ($user->getArticles() as $article){
+                $em->remove($article);
+            }
+
+            $em->remove($user);
+            $em->flush();
+
+            return $this->redirectToRoute('admin_users');
+        }
+        return $this->render('admin/user/delete.html.twig', ['user' => $user, 'form' => $form->createView()]);
     }
 }
