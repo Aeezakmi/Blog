@@ -2,9 +2,12 @@
 
 namespace SoftUniBlogBundle\Controller;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManager;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use SoftUniBlogBundle\Entity\Article;
+use SoftUniBlogBundle\Entity\Tag;
 use SoftUniBlogBundle\Form\ArticleType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,8 +31,14 @@ class ArticleController extends Controller
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $article->setAuthor($this->getUser());
             $em = $this->getDoctrine()->getManager();
+
+            $tagsString = $request->get('tags');
+            $tags = $this->getTags($em, $tagsString);
+
+            $article->setAuthor($this->getUser());
+            $article->setTags($tags);
+
             $em->persist($article);
             $em->flush();
 
@@ -63,9 +72,15 @@ class ArticleController extends Controller
     public function editArticle($id, Request $request)
     {
         $article = $this->getDoctrine()->getRepository(Article::class)->find($id);
-        if ($article === null){
+
+        if ($article === null) {
             return $this->redirectToRoute("blog_index");
         }
+
+        $tags = $article->getTags();
+
+        $tagsString = implode('. ', $tags->toArray());
+
         $currentUser = $this->getUser();
         if (!$currentUser->isAuthor($article) && !$currentUser->isAdmin())
             return $this->redirectToRoute("blog_index");
@@ -74,13 +89,25 @@ class ArticleController extends Controller
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+
             $em = $this->getDoctrine()->getManager();
+
+            $tagsString = $request->get('tags');
+            $tags = $this->getTags($em, $tagsString);
+
+            $article->setTags($tags);
+
             $em->persist($article);
             $em->flush();
             return $this->redirectToRoute('article_view', array('id' => $article->getId()));
         }
 
-        return $this->render('article/edit.html.twig', array('article' => $article, 'form' => $form->createView()));
+        return $this->render('article/edit.html.twig',
+            [
+                'article' => $article,
+                'form' => $form->createView(),
+                'tags' => $tagsString
+            ]);
     }
 
     /**
@@ -94,8 +121,13 @@ class ArticleController extends Controller
     public function deleteArticle($id, Request $request)
     {
         $article = $this->getDoctrine()->getRepository(Article::class)->find($id);
+
         if ($article === null)
             return $this->redirectToRoute("blog_index");
+
+        $tags = $article->getTags();
+
+        $tagsString = implode(', ', $tags->toArray());
 
         $currentUser = $this->getUser();
         if (!$currentUser->isAuthor($article) && !$currentUser->isAdmin())
@@ -111,7 +143,39 @@ class ArticleController extends Controller
             return $this->redirectToRoute('blog_index');
         }
 
-        return $this->render('article/delete.html.twig', array('article' => $article, 'form' => $form->createView()));
+        return $this->render('article/delete.html.twig',
+            [
+                'article' => $article,
+                'form' => $form->createView(),
+                'tags' => $tagsString
+            ]);
     }
 
+    /**
+     * @param $em EntityManager
+     * @param $tagsString String
+     *
+     * @return ArrayCollection
+     */
+    public function getTags($em, $tagsString)
+    {
+        $tags = explode(",", $tagsString);
+        $tagRepo = $this->getDoctrine()->getRepository(Tag::class);
+        $tagsToSave = new ArrayCollection();
+
+        foreach ($tags as $tagName) {
+
+            $tagName = trim($tagName);
+            $tag = $tagRepo->findOneBy(['name' => $tagName]);
+
+            if ($tag == null) {
+                $tag = new Tag();
+                $tag->setName($tagName);
+                $em->persist($tag);
+            }
+
+            $tagsToSave->add($tag);
+        }
+        return $tagsToSave;
+    }
 }

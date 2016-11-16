@@ -7,8 +7,8 @@
                 <div class="col-md-6">
                     <header>
                         <h2>
-                            <a href="{{ path('category_articles', {'id': category.id}) }}">
-                                {{ category.name }} ({{ category.articles.count }})
+                            <button class="btn btn-primary"  onclick="location.href='{{ path('category_articles', {'id': category.id}) }}'"> {{ category.name }} ({{ category.articles.count }}) </button>
+
                             </a>
                         </h2>
                     </header>

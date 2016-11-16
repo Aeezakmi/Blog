@@ -266,5 +266,9 @@ class User implements UserInterface
         $this->roles = $roles;
         return $this;
     }
+    public function __toString()
+    {
+        return $this->fullName;
+    }
 }
 

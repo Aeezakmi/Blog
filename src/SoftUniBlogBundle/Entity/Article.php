@@ -2,6 +2,7 @@
 
 namespace SoftUniBlogBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -218,6 +219,7 @@ class Article
     public function __construct()
     {
         $this->date = new \DateTime('now');
+        $this->tags = new ArrayCollection();
     }
 
     /**
@@ -225,6 +227,7 @@ class Article
      *
      * @ORM\Column(name="category_id", type="integer")
      */
+
     private $categoryId;
 
     /**
@@ -266,6 +269,37 @@ class Article
     {
         $this->category = $category;
     }
+
+
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\ManyToMany(targetEntity="SoftUniBlogBundle\Entity\Tag", inversedBy="articles")
+     * @ORM\JoinTable(name="articles_tags",
+     *     joinColumns={@ORM\JoinColumn(name="article_id", referencedColumnName="id")},
+     *     inverseJoinColumns={@ORM\JoinColumn(name="tag_id", referencedColumnName="id")})
+     */
+    private $tags;
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getTags()
+    {
+        return $this->tags;
+    }
+
+    /**
+     * @param ArrayCollection $tags
+     */
+    public function setTags($tags)
+    {
+        $this->tags = $tags;
+    }
+
+
+
+
 
 }
 
